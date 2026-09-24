@@ -79,10 +79,10 @@ function View() {
         </Panel>
       ) : (
         <>
-          <FigureRow cols={5} className="mb-6 max-md:[&>*:last-child]:col-span-2">
+          <FigureRow cols={5} className="mb-6">
             <Figure label="Status" value={s ? <StatusWord s={s.status} /> : null} loading={!s} sub={s ? `${s.overdueCrons} overdue ${s.overdueCrons === 1 ? "cron" : "crons"}` : undefined} />
             <Figure label="Failed jobs" value={s ? number(s.failedJobs) : null} tone={s?.failedJobs ? "danger" : "ink"} loading={!s} sub="across all queues" />
-            <Figure label="Webhook failures" value={s ? number(s.webhookFailures24h) : null} tone={s?.webhookFailures24h ? "danger" : "ink"} loading={!s} sub={d ? `${d.webhooks.disabledEndpoints} endpoints disabled` : undefined} />
+            <Figure label="Webhook failures" value={s ? number(s.webhookFailures24h) : null} tone={s?.webhookFailures24h ? "danger" : "ink"} loading={!s} sub={d ? `${d.webhooks.disabledEndpoints} ${d.webhooks.disabledEndpoints === 1 ? "endpoint" : "endpoints"} disabled` : undefined} />
             <Figure label="Delivery failures" value={s ? number(s.notificationFailures24h) : null} tone={s?.notificationFailures24h ? "ochre" : "ink"} loading={!s} sub="email, SMS, WhatsApp, 24h" />
             <Figure label="Channel sync errors" value={s ? number(s.channelSyncErrors24h) : null} tone={s?.channelSyncErrors24h ? "ochre" : "ink"} loading={!s} sub="last 24 hours" />
           </FigureRow>
@@ -90,7 +90,7 @@ function View() {
           {!d ? (
             <Skeleton className="h-80 w-full rounded-lg" />
           ) : (
-            <div className="grid gap-6 lg:grid-cols-12">
+            <div className="grid items-start gap-6 lg:grid-cols-12">
               <Queues d={d} onOpen={setQueue} />
               <Crons d={d} />
               <Notifications d={d} />
@@ -109,7 +109,7 @@ function View() {
 
 function StatusWord({ s }: { s: "ok" | "degraded" | "down" }) {
   return (
-    <span className={cn("inline-flex items-center gap-2", s === "ok" ? "text-palm" : s === "down" ? "text-laterite" : "text-ochre")}>
+    <span className={cn("inline-flex items-center gap-2.5 font-sans text-[26px] tracking-tight md:text-[28px]", s === "ok" ? "text-palm" : s === "down" ? "text-laterite" : "text-ochre")}>
       <span className="live-dot" style={{ width: 9, height: 9 }} aria-hidden />
       {s === "ok" ? "Normal" : s === "down" ? "Down" : "Degraded"}
     </span>

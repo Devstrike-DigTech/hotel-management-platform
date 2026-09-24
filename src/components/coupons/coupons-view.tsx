@@ -9,7 +9,7 @@ import { qk, useCouponRedemptions, useCoupons } from "@/lib/api/hooks";
 import type { BillingInterval } from "@/lib/api/types";
 import type { Coupon } from "@/lib/api/types-m6";
 import { PLAN_ORDER, planName } from "@/lib/catalog";
-import { formatDate, naira } from "@/lib/format";
+import { formatDate, nairaCompact } from "@/lib/format";
 import { toast } from "@/lib/store";
 import { useCan } from "@/lib/session";
 import { cn } from "@/lib/cn";
@@ -29,7 +29,7 @@ export function CouponsView() {
 }
 
 function discount(c: Pick<Coupon, "percentOff" | "amountOffKobo">) {
-  return c.percentOff ? `${c.percentOff}%` : naira(c.amountOffKobo);
+  return c.percentOff ? `${c.percentOff}%` : nairaCompact(c.amountOffKobo);
 }
 function durationText(m: number | null) {
   return m == null ? "forever" : m === 1 ? "first month" : `first ${m} months`;

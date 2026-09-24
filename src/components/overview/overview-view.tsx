@@ -42,7 +42,7 @@ export function OverviewView() {
         <>
           {d && can("system.view") ? <HealthStrip h={d.health} /> : d ? null : <Skeleton className="mb-6 h-12 w-full rounded-lg" />}
 
-          <FigureRow cols={5} className="mb-6 max-md:[&>*:last-child]:col-span-2">
+          <FigureRow cols={5} className="mb-6">
             <Figure label="Monthly recurring" value={d ? nairaCompact(d.mrrKobo) : null} sub={d ? naira(d.mrrKobo) : undefined} tone="adire" loading={!d} />
             <Figure label="Annual run-rate" value={d ? nairaCompact(d.arrKobo) : null} sub="MRR x 12, custom prices in" loading={!d} />
             <Figure label="Marketplace GMV" value={d ? nairaCompact(d.gmv30dKobo) : null} sub="last 30 days" loading={!d} />

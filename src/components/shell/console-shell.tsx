@@ -60,8 +60,10 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-dvh">
-      <aside className="sticky top-0 hidden h-dvh w-[248px] shrink-0 lg:block dark:border-r dark:border-night-line">
-        <Sidebar onSignOut={signOut} />
+      <aside className="hidden w-[248px] shrink-0 bg-night lg:block dark:border-r dark:border-night-line">
+        <div className="sticky top-0 h-dvh">
+          <Sidebar onSignOut={signOut} />
+        </div>
       </aside>
 
       <D.Root open={drawer} onOpenChange={setDrawer}>

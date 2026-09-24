@@ -87,7 +87,7 @@ export function FigureRow({ children, cols = 4, className }: { children: React.R
     <Panel
       className={cn(
         "grid grid-cols-2 [&>*]:border-line max-md:[&>*:nth-child(odd)]:border-r max-md:[&>*:not(:nth-last-child(-n+2))]:border-b",
-        cols === 3 ? "md:grid-cols-3" : cols === 5 ? "md:grid-cols-5" : "md:grid-cols-4",
+        cols === 3 ? "md:grid-cols-3" : cols === 5 ? "md:grid-cols-5 max-md:[&>*:last-child]:col-span-2 max-md:[&>*:last-child]:border-r-0" : "md:grid-cols-4",
         "md:[&>*:not(:first-child)]:border-l",
         className,
       )}

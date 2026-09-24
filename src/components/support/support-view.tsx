@@ -78,7 +78,13 @@ function Desk() {
   const summary = useSupportSummary();
   const def = VIEWS.find((v) => v.key === view)!;
   const list = useSupport({ ...def.query, q: deb || undefined, tenantId, pageSize: 50 });
-  const items = list.data?.items ?? [];
+  // Waiting for a first response comes first, soonest due at the top; then everything else by last message.
+  const items = [...(list.data?.items ?? [])].sort((a, b) => {
+    const wa = a.firstRespondedAt ? 1 : 0;
+    const wb = b.firstRespondedAt ? 1 : 0;
+    if (wa !== wb) return wa - wb;
+    return wa === 0 ? a.firstResponseDueAt.localeCompare(b.firstResponseDueAt) : b.lastMessageAt.localeCompare(a.lastMessageAt);
+  });
   const wide = useWide();
   const current = selected ?? (wide ? (items[0]?.id ?? null) : null);
 
@@ -131,13 +137,15 @@ function Desk() {
                 </span>
               )}
             </div>
-            <Select aria-label="View" value={view} onChange={(e) => (setView(e.target.value as View), setSelected(null))} className="xl:hidden">
-              {VIEWS.map((v) => (
-                <option key={v.key} value={v.key}>
-                  {v.label}
-                </option>
-              ))}
-            </Select>
+            <div className="xl:hidden">
+              <Select aria-label="View" value={view} onChange={(e) => (setView(e.target.value as View), setSelected(null))}>
+                {VIEWS.map((v) => (
+                  <option key={v.key} value={v.key}>
+                    {v.label}
+                  </option>
+                ))}
+              </Select>
+            </div>
             <div className="relative">
               <MagnifyingGlass size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
               <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search subject, hotel or SR number" className="h-9 pl-9" aria-label="Search requests" />
@@ -282,7 +290,7 @@ function Thread({ id, onBack }: { id: string; onBack: () => void }) {
             </Button>
           )}
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="mt-4 grid grid-cols-2 gap-2 2xl:grid-cols-4">
           <Select aria-label="Status" className="h-8 text-[13px]" value={r.status} onChange={(e) => update.mutate({ status: e.target.value })}>
             {(["NEW", "OPEN", "WAITING_ON_HOTEL", "RESOLVED", "CLOSED"] as SupportStatus[]).map((s) => (
               <option key={s} value={s}>

@@ -116,7 +116,7 @@ function View() {
             ))}
           </ul>
         )}
-        {!!past.data?.total && <Pager page={page} pageSize={15} total={past.data.total} onPage={setPage} noun="sessions" />}
+        {!!past.data?.total && <Pager page={page} pageSize={15} total={past.data.total} onPage={setPage} noun={past.data.total === 1 ? "session" : "sessions"} />}
       </Panel>
 
       <ImpersonationLauncher open={launch} onOpenChange={setLaunch} target={{}} />
