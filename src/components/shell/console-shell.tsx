@@ -39,7 +39,6 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
       }),
     [router, qc],
   );
-  useEffect(() => setDrawer(false), [pathname]);
 
   if (!me.data)
     return (
@@ -61,7 +60,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-dvh">
-      <aside className="sticky top-0 hidden h-dvh w-[248px] shrink-0 lg:block">
+      <aside className="sticky top-0 hidden h-dvh w-[248px] shrink-0 lg:block dark:border-r dark:border-night-line">
         <Sidebar onSignOut={signOut} />
       </aside>
 
@@ -71,7 +70,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
           <D.Content className="fixed inset-y-0 left-0 z-50 w-[min(300px,86vw)] outline-none data-[state=open]:animate-[sheet-in_220ms_cubic-bezier(0.22,1,0.36,1)] lg:hidden">
             <D.Title className="sr-only">Console navigation</D.Title>
             <D.Description className="sr-only">Every section of the console</D.Description>
-            <Sidebar onSignOut={signOut} onClose={() => setDrawer(false)} />
+            <Sidebar onSignOut={signOut} onClose={() => setDrawer(false)} onNavigate={() => setDrawer(false)} />
           </D.Content>
         </D.Portal>
       </D.Root>
@@ -117,7 +116,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Sidebar({ onSignOut, onClose }: { onSignOut: () => void; onClose?: () => void }) {
+function Sidebar({ onSignOut, onClose, onNavigate }: { onSignOut: () => void; onClose?: () => void; onNavigate?: () => void }) {
   const pathname = usePathname();
   const me = useMe().data!;
   const can = useCan();
@@ -152,6 +151,7 @@ function Sidebar({ onSignOut, onClose }: { onSignOut: () => void; onClose?: () =
                     <li key={n.href}>
                       <Link
                         href={n.href}
+                        onClick={onNavigate}
                         aria-current={on ? "page" : undefined}
                         className={cn(
                           "group relative flex h-9 items-center gap-3 rounded-md px-3 text-[13.5px] transition-colors duration-150",
@@ -184,6 +184,7 @@ function Sidebar({ onSignOut, onClose }: { onSignOut: () => void; onClose?: () =
       <div className="relative border-t border-night-line p-3">
         <Link
           href={ACCOUNT_ITEM.href}
+          onClick={onNavigate}
           className={cn(
             "flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-white/[0.04]",
             isActive(pathname, ACCOUNT_ITEM.href) && "bg-night-2",

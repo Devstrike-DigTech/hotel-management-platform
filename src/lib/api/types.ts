@@ -73,8 +73,6 @@ export interface TenantRow {
   createdAt: string;
   trialEndsAt: string | null;
   state?: string | null;
-  databaseMode?: "SHARED" | "DEDICATED" | null;
-  offboarding?: { status: string; deleteAfter: string | null } | null;
 }
 
 export interface TenantSubscription {
@@ -103,7 +101,6 @@ export interface TenantDetail extends TenantRow {
   featureOverrides: { featureCode: string; enabled: boolean; note: string | null; updatedAt: string }[];
   invoices: Invoice[];
   recentActivity: AuditItem[];
-  [key: string]: unknown;
 }
 
 /* ---------- metrics ---------- */
@@ -117,7 +114,6 @@ export interface PlatformMetrics {
   newTenants30d: number;
   signupsByWeek: { week: string; count: number }[];
   marketplace?: { gmv30dKobo: number; commission30dKobo: number; receivableKobo: number; orphanedOpen: number; flaggedReviews: number };
-  [key: string]: unknown;
 }
 
 /* ---------- marketplace (API-M3.md section 7) ---------- */
@@ -177,7 +173,7 @@ export interface OrphanedPayment {
   refund: { id: string; amountKobo: number; status: RefundStatus; error: string | null; processedAt: string | null } | null;
 }
 export type ReviewStatus = "PUBLISHED" | "FLAGGED" | "HIDDEN";
-export type ModerationReason = "ABUSE" | "PERSONAL_DATA" | "OFF_TOPIC" | "SPAM" | "OTHER";
+export type ModerationReason = "ABUSE" | "PII" | "OFF_TOPIC" | "SPAM" | "OTHER";
 export interface ModerationReview {
   id: string;
   tenantId: string;

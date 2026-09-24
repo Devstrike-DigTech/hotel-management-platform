@@ -52,7 +52,7 @@ function StepUpDialog({ reason, onDone }: { reason: string; onDone: (ok: boolean
     setError(null);
     try {
       const res = await authApi.stepUp(recovery ? { recoveryCode: v } : { code: v });
-      markSteppedUp(res?.expiresAt ?? res?.stepUpExpiresAt ?? null);
+      markSteppedUp(res?.stepUpUntil ?? null);
       onDone(true);
     } catch (e) {
       setError(errorMessage(e));

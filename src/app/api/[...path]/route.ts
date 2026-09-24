@@ -63,8 +63,8 @@ async function forward(req: NextRequest, path: string, body: ArrayBuffer | undef
   if (ua) headers.set("user-agent", ua);
   if (PROXY_SECRET) headers.set("x-proxy-auth", PROXY_SECRET);
   if (PLATFORM_KEY) headers.set("x-platform-proxy-key", PLATFORM_KEY);
-  // The API allows platform calls only from PLATFORM_ORIGINS; we are that origin.
-  headers.set("origin", req.nextUrl.origin);
+  // Server-to-server: no Origin header. The API refuses browser origins other
+  // than PLATFORM_ORIGINS on /platform/*, and the browser never reaches it anyway.
   if (tokens.at) headers.set("authorization", `Bearer ${tokens.at}`);
   if (tokens.su) headers.set("x-step-up-token", tokens.su);
   return fetch(url, { method: req.method, headers, body: body && body.byteLength ? body : undefined, redirect: "manual", cache: "no-store" });
@@ -72,7 +72,7 @@ async function forward(req: NextRequest, path: string, body: ArrayBuffer | undef
 
 async function refresh(req: NextRequest, rt: string): Promise<{ at: string; rt?: string; raw: Record<string, unknown> } | null> {
   try {
-    const headers: Record<string, string> = { "content-type": "application/json", accept: "application/json", "x-client-ip": clientIp(req), origin: req.nextUrl.origin };
+    const headers: Record<string, string> = { "content-type": "application/json", accept: "application/json", "x-client-ip": clientIp(req) };
     if (PROXY_SECRET) headers["x-proxy-auth"] = PROXY_SECRET;
     if (PLATFORM_KEY) headers["x-platform-proxy-key"] = PLATFORM_KEY;
     const r = await fetch(`${API}/api/v1/${REFRESH_PATH}`, { method: "POST", headers, body: JSON.stringify({ refreshToken: rt }), cache: "no-store" });

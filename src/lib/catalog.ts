@@ -62,8 +62,8 @@ export const LIMIT_LABEL: Record<string, string> = { max_rooms: "Rooms", max_sta
 /* ---------------- Platform roles and permissions ---------------- */
 export const PLATFORM_ROLES: Record<PlatformRole, { label: string; description: string }> = {
   SUPER_ADMIN: { label: "Super admin", description: "Everything, including people and dedicated databases" },
-  OPERATIONS: { label: "Operations", description: "Tenants, plans, system health and provisioning" },
-  SUPPORT: { label: "Support", description: "Support desk, impersonation and tenant look-ups" },
+  OPERATIONS: { label: "Operations", description: "Tenants, announcements, system health and provisioning" },
+  SUPPORT: { label: "Support", description: "Support desk, impersonation, reviews and system health" },
   FINANCE: { label: "Finance", description: "Billing, commission, coupons and orphaned payments" },
   SALES_READONLY: { label: "Sales (read-only)", description: "Reads tenants, plans and the overview" },
 };
@@ -113,16 +113,16 @@ export const ROLE_PERMISSIONS: Record<PlatformRole, Permission[]> = {
   OPERATIONS: [
     "tenants.view",
     "tenants.manage",
-    "plans.manage",
     "billing.view",
     "reviews.moderate",
+    "impersonate",
     "announcements.manage",
     "support.handle",
     "dedicated_db.manage",
     "audit.view",
     "system.view",
   ],
-  SUPPORT: ["tenants.view", "impersonate", "support.handle", "reviews.moderate", "announcements.manage"],
+  SUPPORT: ["tenants.view", "impersonate", "support.handle", "reviews.moderate", "system.view"],
   FINANCE: ["tenants.view", "billing.view", "billing.manage", "commission.manage", "plans.manage", "audit.view"],
   SALES_READONLY: ["tenants.view", "billing.view"],
 };

@@ -49,7 +49,7 @@ export const NAV: NavGroup[] = [
     label: "Money",
     items: [
       { href: "/plans", label: "Plans", icon: Stack, perm: ["plans.manage", "billing.view"], keywords: "pricing tiers features limits" },
-      { href: "/coupons", label: "Coupons", icon: Ticket, perm: ["plans.manage", "billing.manage"], keywords: "discount promo subscription" },
+      { href: "/coupons", label: "Coupons", icon: Ticket, perm: "billing.view", keywords: "discount promo subscription" },
       { href: "/marketplace", label: "Marketplace", icon: Storefront, perm: ["billing.view", "commission.manage"], keywords: "gmv commission settle receivables" },
       { href: "/payments/orphaned", label: "Orphaned payments", icon: Receipt, perm: ["billing.view", "commission.manage"], badge: "orphaned", keywords: "refund paystack" },
     ],
@@ -62,8 +62,8 @@ export const NAV: NavGroup[] = [
     label: "Infrastructure",
     items: [
       { href: "/system", label: "System health", icon: Gauge, perm: "system.view", badge: "failedJobs", keywords: "queues jobs webhooks cron failures" },
-      { href: "/databases", label: "Databases", icon: Database, perm: ["dedicated_db.manage", "system.view"], keywords: "dedicated provisioning migrate" },
-      { href: "/api-usage", label: "API usage", icon: Plugs, perm: ["tenants.view", "system.view"], keywords: "partner keys requests rate" },
+      { href: "/databases", label: "Databases", icon: Database, perm: "dedicated_db.manage", keywords: "dedicated provisioning migrate" },
+      { href: "/api-usage", label: "API usage", icon: Plugs, perm: "tenants.view", keywords: "partner keys requests rate" },
     ],
   },
   {

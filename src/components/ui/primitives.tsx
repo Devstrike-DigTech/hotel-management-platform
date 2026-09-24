@@ -282,11 +282,11 @@ export function Meter({
   const ticks = unlimited || max > 30 ? 0 : max;
   return (
     <div className={cn("flex flex-col gap-2", className)}>
-      <div className="flex items-baseline justify-between gap-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3">
         <span className="text-[13px] text-ink-muted">{label}</span>
-        <span className="font-mono text-[13px] text-ink">
+        <span className="whitespace-nowrap font-mono text-[13px] text-ink">
           {used}
-          <span className="text-ink-faint"> / {unlimited ? "unlimited" : max}</span>
+          <span className="text-ink-faint"> / {unlimited ? "no cap" : max}</span>
         </span>
       </div>
       <div

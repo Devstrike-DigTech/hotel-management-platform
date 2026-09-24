@@ -270,9 +270,9 @@
   /* Fraunces, precise: low SOFT, no WONK, tight tracking at size */
   .display {
     font-family: var(--font-display);
-    font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0;
-    letter-spacing: -0.03em;
-    font-weight: 340;
+    font-variation-settings: "opsz" 96, "SOFT" 0, "WONK" 0;
+    letter-spacing: -0.026em;
+    font-weight: 400;
   }
   .display-sm {
     font-family: var(--font-display);
@@ -284,7 +284,7 @@
   .display-sm em,
   em.serif-accent {
     font-style: italic;
-    font-variation-settings: "opsz" 144, "SOFT" 60, "WONK" 1;
+    font-variation-settings: "opsz" 96, "SOFT" 60, "WONK" 1;
   }
   .eyebrow {
     font-family: var(--font-mono);

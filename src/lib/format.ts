@@ -151,3 +151,44 @@ export function formatPhone(p: string | null | undefined): string {
 export function pluralize(n: number, one: string, many = `${one}s`) {
   return `${n} ${n === 1 ? one : many}`;
 }
+
+export function bytes(n: number | null | undefined): string {
+  if (n === null || n === undefined) return "-";
+  const u = ["B", "KB", "MB", "GB", "TB"];
+  let v = n;
+  let i = 0;
+  while (v >= 1024 && i < u.length - 1) {
+    v /= 1024;
+    i++;
+  }
+  return `${v >= 100 || i === 0 ? Math.round(v) : v.toFixed(1)} ${u[i]}`;
+}
+
+/** 90061000 -> "1d 1h", 3720000 -> "1h 2m", 42000 -> "42s" */
+export function duration(ms: number | null | undefined): string {
+  if (ms === null || ms === undefined) return "-";
+  const a = Math.abs(ms);
+  const s = Math.floor(a / 1000);
+  if (s < 60) return a < 1000 ? `${Math.round(a)}ms` : `${s}s`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m${s % 60 ? ` ${s % 60}s` : ""}`;
+  const h = Math.floor(m / 60);
+  if (h < 48) return `${h}h${m % 60 ? ` ${m % 60}m` : ""}`;
+  const d = Math.floor(h / 24);
+  return `${d}d${h % 24 ? ` ${h % 24}h` : ""}`;
+}
+
+/** mm:ss for short countdowns. */
+export function clock(ms: number): string {
+  const s = Math.max(0, Math.round(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+/** "Chrome 129 on macOS" from a user agent (best effort). */
+export function deviceName(ua: string | null | undefined): string {
+  if (!ua) return "Unknown device";
+  if (!/mozilla|applewebkit|gecko/i.test(ua)) return ua;
+  const browser = /Edg\//.test(ua) ? "Edge" : /Firefox\//.test(ua) ? "Firefox" : /Chrome\//.test(ua) ? "Chrome" : /Safari\//.test(ua) ? "Safari" : "Browser";
+  const os = /iPhone|iPad/.test(ua) ? "iOS" : /Android/.test(ua) ? "Android" : /Mac OS X|Macintosh/.test(ua) ? "macOS" : /Windows/.test(ua) ? "Windows" : /Linux/.test(ua) ? "Linux" : "";
+  return os ? `${browser} on ${os}` : browser;
+}

@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Copy, DeviceMobile, Key, ShieldCheck, WarningOctagon } from "@phosphor-icons/react";
-import { authApi, type LoginResult } from "@/lib/api/endpoints";
+import { authApi } from "@/lib/api/endpoints";
+import type { MfaChallenge } from "@/lib/api/types-m6";
 import { errorMessage, isApiError } from "@/lib/api/client";
 import { meKey } from "@/lib/session";
 import { totp, totpSecondsLeft } from "@/lib/totp";
@@ -26,13 +27,13 @@ type Step =
   | { kind: "enrol"; mfaToken: string; otpauthUri: string; secret: string }
   | { kind: "codes"; codes: string[] };
 
-export function SignIn() {
+export function SignIn({ start }: { start?: { challenge: MfaChallenge; email: string } } = {}) {
   const router = useRouter();
   const params = useSearchParams();
   const qc = useQueryClient();
   const next = safeNext(params.get("next"));
   const [step, setStep] = useState<Step>({ kind: "password" });
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(start?.email ?? "");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +41,7 @@ export function SignIn() {
 
   // Already signed in? Go straight in.
   useEffect(() => {
+    if (start) return;
     let live = true;
     authApi
       .me()
@@ -52,7 +54,7 @@ export function SignIn() {
     return () => {
       live = false;
     };
-  }, [qc, router, next]);
+  }, [qc, router, next, start]);
 
   const enter = async () => {
     const me = await authApi.me();
@@ -61,19 +63,25 @@ export function SignIn() {
     router.replace(next);
   };
 
-  const afterPassword = async (res: LoginResult) => {
-    const token = String(res.mfaToken ?? res.challengeToken ?? "");
-    if (res.enrolmentRequired) {
-      const e = await authApi.enrolStart(token);
-      setStep({ kind: "enrol", mfaToken: token, otpauthUri: e.otpauthUri, secret: e.secret });
+  const afterPassword = async (res: MfaChallenge) => {
+    if (res.status === "MFA_ENROLMENT_REQUIRED") {
+      const e = await authApi.enrolStart(res.mfaToken);
+      setStep({ kind: "enrol", mfaToken: res.mfaToken, otpauthUri: e.otpauthUri, secret: e.secret });
       return;
     }
-    if (res.mfaRequired || token) {
-      setStep({ kind: "verify", mfaToken: token });
-      return;
-    }
-    await enter();
+    setStep({ kind: "verify", mfaToken: res.mfaToken });
   };
+
+  // Coming from an accepted invitation: straight to pairing the authenticator.
+  const startedFrom = useRef<MfaChallenge | null>(null);
+  useEffect(() => {
+    if (!start || startedFrom.current === start.challenge) return;
+    startedFrom.current = start.challenge;
+    authApi
+      .enrolStart(start.challenge.mfaToken)
+      .then((e) => setStep({ kind: "enrol", mfaToken: start.challenge.mfaToken, otpauthUri: e.otpauthUri, secret: e.secret }))
+      .catch((e) => setError(signInError(e)));
+  }, [start]);
 
   const submitPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +105,7 @@ export function SignIn() {
     setError(null);
     try {
       if (step.kind === "enrol") {
-        const res = await authApi.enrolConfirm(step.mfaToken, v);
+        const res = await authApi.enrolVerify(step.mfaToken, v);
         setCode("");
         if (res.recoveryCodes?.length) setStep({ kind: "codes", codes: res.recoveryCodes });
         else await enter();
@@ -108,7 +116,7 @@ export function SignIn() {
     } catch (err) {
       setError(signInError(err));
       setCode("");
-      if (isApiError(err) && (err.code === "MFA_TOKEN_EXPIRED" || err.code === "INVALID_MFA_TOKEN")) setStep({ kind: "password" });
+      if (isApiError(err) && err.code === "MFA_TOKEN_INVALID") setStep({ kind: "password" });
     } finally {
       setBusy(false);
     }
@@ -356,10 +364,17 @@ function WindowClock() {
 
 function signInError(err: unknown): string {
   if (isApiError(err)) {
-    if (err.code === "ACCOUNT_LOCKED" || err.code === "LOCKED") return err.message || "Too many attempts. This account is locked for a while.";
+    if (err.code === "ACCOUNT_LOCKED") {
+      const until = typeof err.details?.lockedUntil === "string" ? new Date(err.details.lockedUntil) : null;
+      return `Too many attempts. This account is locked${until ? ` until ${until.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" })}` : " for 15 minutes"}.`;
+    }
+    if (err.code === "MFA_TOKEN_INVALID") return "That sign-in took too long. Enter your password again.";
     if (err.code === "IP_NOT_ALLOWED") return "Your account can't sign in from this network. Ask a super admin to add it to your allowlist.";
     if (err.status === 401 && (err.code === "INVALID_CREDENTIALS" || err.code === "UNAUTHORIZED")) return "Those details don't match a console account.";
-    if (err.code === "INVALID_TOTP" || err.code === "INVALID_CODE") return "That code didn't match. Check the app and try the new one.";
+    if (err.code === "INVALID_MFA_CODE") {
+      const left = err.details?.attemptsLeft;
+      return `That code didn't match.${typeof left === "number" ? ` ${left} ${left === 1 ? "attempt" : "attempts"} left before the account locks.` : ""}`;
+    }
   }
   return errorMessage(err);
 }
