@@ -17,7 +17,10 @@ it is read from `NEXT_PUBLIC_APP_NAME` everywhere and never hard-coded.
 | ![Announcement composer](docs/screenshots/announcement-composer-1440-light.png) | ![Impersonation launcher](docs/screenshots/impersonation-launch-1440-dark.png) |
 | ![Two-factor sign-in](docs/screenshots/login-totp-1440-light.png) | ![System health](docs/screenshots/system-1440-dark.png) |
 
-Every page at 1440px and 390px, light and dark, is in [`docs/screenshots`](docs/screenshots).
+Every page at 1440px and 390px, light and dark, is in [`docs/screenshots`](docs/screenshots). Most were taken with fixture data shaped exactly
+like the M6 contract while the API was still being finished (so every state shows: an overdue Enterprise request,
+failed jobs, a provisioning mid-copy); the `live-*` shots are against the live API and its seed, for example
+[Harmattan's dedicated database](docs/screenshots/live-database-1440-dark.png).
 
 ## Stack
 

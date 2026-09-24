@@ -222,9 +222,9 @@ function Crons({ d }: { d: SystemHealth }) {
 function Notifications({ d }: { d: SystemHealth }) {
   return (
     <Section id="notifications" icon={ChatCircleDots} eyebrow="Deliveries" title="Email, SMS and WhatsApp" description="Sent and failed in the last 24 hours, by provider" className="lg:col-span-6">
-      <ul className="grid grid-cols-3 border-b border-line">
+      <ul className="grid grid-cols-2 gap-px border-b border-line bg-line sm:grid-cols-3">
         {d.notifications.byChannel.map((c) => (
-          <li key={c.channel} className="border-line px-5 py-4 [&:not(:first-child)]:border-l">
+          <li key={`${c.channel}-${c.provider}`} className="bg-surface px-5 py-4">
             <p className="eyebrow text-[9.5px]">
               {titleCase(c.channel)} <span className="normal-case tracking-normal text-ink-faint">{c.provider}</span>
             </p>
