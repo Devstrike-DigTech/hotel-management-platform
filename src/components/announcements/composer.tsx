@@ -99,7 +99,7 @@ function ComposerForm({ editId, initial }: { editId: string | null; initial: Ann
         }
         description="A banner inside the hotel admin, and optionally an email to owners and managers. Plain text; line breaks are kept."
       />
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_440px]">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_440px] [&>*]:min-w-0">
         <div className="flex flex-col gap-6">
           <Panel className="p-5 sm:p-6">
             <div className="flex flex-col gap-5">

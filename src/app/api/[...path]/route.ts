@@ -112,8 +112,12 @@ function captureTokens(data: Record<string, unknown>, cookies: string[]) {
 
 async function handle(req: NextRequest, ctx: Ctx) {
   const { path: parts } = await ctx.params;
+  // no dot segments: "platform/../auth" must not climb out of the allowlist once URL-normalised
+  if (parts.some((p) => p === "." || p === ".." || p.includes("\\"))) return json(404, "NOT_FOUND", "Not found");
   const path = parts.map(encodeURIComponent).join("/");
   if (!ALLOWED.some((re) => re.test(path))) return json(404, "NOT_FOUND", "Not found");
+  // development helpers of the API are never reachable through a production console
+  if (process.env.NODE_ENV === "production" && /(^|\/)dev\//.test(path)) return json(404, "NOT_FOUND", "Not found");
 
   const method = req.method.toUpperCase();
   if (method !== "GET" && method !== "HEAD") {

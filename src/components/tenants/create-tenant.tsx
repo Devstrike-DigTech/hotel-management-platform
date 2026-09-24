@@ -159,7 +159,7 @@ function CreateTenant() {
         description="For groups and chains signed by sales: a custom price and contract dates. The owner receives a link to set their password."
       />
       <form
-        className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]"
+        className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px] [&>*]:min-w-0"
         onSubmit={(e) => {
           e.preventDefault();
           if (valid) create.mutate();
@@ -313,7 +313,7 @@ function Section({ icon: I, title, children }: { icon: typeof Buildings; title: 
         <I size={17} weight="duotone" className="text-adire" />
         <h2 className="display-sm text-[17px] text-ink">{title}</h2>
       </header>
-      <div className="grid gap-5 p-5 sm:grid-cols-2">{children}</div>
+      <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 [&>*]:min-w-0">{children}</div>
     </Panel>
   );
 }

@@ -94,13 +94,13 @@ export function PanelHeader({
   description?: React.ReactNode;
 }) {
   return (
-    <header className={cn("flex items-start justify-between gap-4 border-b border-line px-5 py-4", className)}>
+    <header className={cn("flex flex-col gap-3 border-b border-line px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:gap-4", className)}>
       <div className="min-w-0">
         {eyebrow && <p className="eyebrow mb-1">{eyebrow}</p>}
         <h2 className="display-sm text-[19px] leading-tight text-ink">{title}</h2>
         {description && <p className="mt-1 text-[13px] text-ink-muted">{description}</p>}
       </div>
-      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+      {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
     </header>
   );
 }
