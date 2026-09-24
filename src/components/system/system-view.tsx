@@ -186,7 +186,7 @@ function Crons({ d }: { d: SystemHealth }) {
     },
     meta: { errorTitle: "Job did not run" },
   });
-  const runnable = new Set(["dunning", "holds-sweep", "guest-notifications", "webhooks-deliver", "announcements-email", "offboarding", "dedicated-purge", "public-listings", "api-usage-flush"]);
+  const runnable = new Set(["dunning", "holds-sweep", "guest-notifications", "webhooks-deliver", "announcements-email", "offboarding", "dedicated-purge", "public-listings", "api-usage-flush", "mirror-sync", "exports-cleanup", "white-label-checks", "provisioning-reconcile"]);
   return (
     <Section id="crons" icon={Clock} eyebrow="Scheduler" title="Scheduled jobs" description="Last run of every repeatable job" className="lg:col-span-5">
       <ul className="divide-y divide-line">
@@ -447,11 +447,17 @@ function FailedSheet({ queue, onClose }: { queue: string | null; onClose: () => 
                       {j.attemptsMade} {j.attemptsMade === 1 ? "try" : "tries"} &middot; {relativeTime(j.timestamp)}
                     </span>
                   </span>
-                  <span className="mt-1 block text-[12.5px] text-laterite">{j.failedReason}</span>
+                  <span className="mt-1 line-clamp-2 block break-words text-[12.5px] text-laterite" title={j.failedReason}>
+                    {j.failedReason.split("\n")[0]}
+                  </span>
                 </button>
               </div>
               {open === j.id && (
-                <pre className="scrollbar-thin max-h-48 overflow-auto border-t border-line bg-surface-2/60 px-3 py-2 font-mono text-[11.5px] text-ink-muted">{JSON.stringify(j.data, null, 2)}</pre>
+                <pre className="scrollbar-thin max-h-60 overflow-auto whitespace-pre-wrap break-words border-t border-line bg-surface-2/60 px-3 py-2 font-mono text-[11.5px] text-ink-muted">
+                  {j.failedReason}
+                  {"\n\n"}
+                  {JSON.stringify(j.data, null, 2)}
+                </pre>
               )}
             </li>
           ))}

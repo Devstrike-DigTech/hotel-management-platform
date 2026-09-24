@@ -10,6 +10,7 @@ import { useNow } from "@/lib/use-now";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/form";
 import { OtpInput } from "./otp-input";
+import { CodeUsedNotice, codeAlreadyUsed } from "./code-used";
 
 /** When the current step-up lapses (ms since epoch), as the API reported it. */
 export const stepUpStore = createStore<number | null>(null);
@@ -43,6 +44,7 @@ function StepUpDialog({ reason, onDone }: { reason: string; onDone: (ok: boolean
   const [code, setCode] = useState("");
   const [recovery, setRecovery] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [used, setUsed] = useState<{ n: number; s: number } | null>(null);
   const [busy, setBusy] = useState(false);
 
   const submit = async (value = code) => {
@@ -50,12 +52,15 @@ function StepUpDialog({ reason, onDone }: { reason: string; onDone: (ok: boolean
     if (recovery ? v.length < 8 : v.length !== 6) return;
     setBusy(true);
     setError(null);
+    setUsed(null);
     try {
       const res = await authApi.stepUp(recovery ? { recoveryCode: v } : { code: v });
       markSteppedUp(res?.stepUpUntil ?? null);
       onDone(true);
     } catch (e) {
-      setError(errorMessage(e));
+      const wait = codeAlreadyUsed(e);
+      if (wait !== null) setUsed((u) => ({ n: (u?.n ?? 0) + 1, s: wait }));
+      else setError(errorMessage(e));
       setCode("");
       setBusy(false);
     }
@@ -81,7 +86,7 @@ function StepUpDialog({ reason, onDone }: { reason: string; onDone: (ok: boolean
             <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.2em] text-night-brass">Step-up verification</p>
             <D.Title className="display-sm mt-1 text-[22px] leading-tight text-night-ink">Confirm it&rsquo;s you</D.Title>
             <D.Description className="mt-1.5 text-[13px] leading-relaxed text-night-muted">
-              {reason && !/^step.?up/i.test(reason) ? reason : "This action is sensitive."} One code keeps you verified for ten minutes.
+              {reason && !/^step.?up/i.test(reason) ? reason.replace(/[.\s]*$/, ".") : "This action is sensitive."} One code keeps you verified for ten minutes.
             </D.Description>
           </div>
           <form
@@ -104,6 +109,7 @@ function StepUpDialog({ reason, onDone }: { reason: string; onDone: (ok: boolean
             ) : (
               <OtpInput idPrefix="stepup" value={code} onChange={setCode} onComplete={(v) => void submit(v)} invalid={!!error} disabled={busy} autoFocus />
             )}
+            {used && <CodeUsedNotice key={used.n} secondsLeft={used.s} className="mt-3" />}
             {error && (
               <p role="alert" className="mt-3 text-[12.5px] text-laterite">
                 {error}

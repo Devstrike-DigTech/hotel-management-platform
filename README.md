@@ -17,10 +17,9 @@ it is read from `NEXT_PUBLIC_APP_NAME` everywhere and never hard-coded.
 | ![Announcement composer](docs/screenshots/announcement-composer-1440-light.png) | ![Impersonation launcher](docs/screenshots/impersonation-launch-1440-dark.png) |
 | ![Two-factor sign-in](docs/screenshots/login-totp-1440-light.png) | ![System health](docs/screenshots/system-1440-dark.png) |
 
-Every page at 1440px and 390px, light and dark, is in [`docs/screenshots`](docs/screenshots). Most were taken with fixture data shaped exactly
-like the M6 contract while the API was still being finished (so every state shows: an overdue Enterprise request,
-failed jobs, a provisioning mid-copy); the `live-*` shots are against the live API and its seed, for example
-[Harmattan's dedicated database](docs/screenshots/live-database-1440-dark.png).
+Every page at 1440px and 390px, light and dark, is in [`docs/screenshots`](docs/screenshots). They were taken against the live API and its M6 seed (the
+provisioning, impersonation and offboarding flows ran for real on throwaway Enterprise tenants), so the lists also
+show rows that the end-to-end tests leave behind.
 
 ## Stack
 
@@ -200,7 +199,8 @@ pnpm test:e2e      # Chromium from /opt/pw-browsers (or PW_CHROMIUM_PATH)
 Runs against the dev server on :3002 and the live API on :4000 with the M6 seed:
 
 - sign in with password and a TOTP computed from the seeded secret; tokens are in httpOnly cookies, invisible to
-  scripts; sign out; a wrong code is refused;
+  scripts; sign out; a wrong code is refused; a code used twice (`MFA_CODE_ALREADY_USED`) shows a calm "wait for the
+  next code" note, not a failure;
 - step-up on a sensitive action (new recovery codes);
 - create an Enterprise tenant with a custom price;
 - post an announcement to Pro and Enterprise hotels;

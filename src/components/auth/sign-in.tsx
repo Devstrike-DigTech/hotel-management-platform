@@ -14,6 +14,7 @@ import { Field, Input, PasswordInput } from "@/components/ui/form";
 import { OtpInput } from "@/components/security/otp-input";
 import { QrCode, groupSecret, parseOtpauth } from "@/components/security/qr";
 import { RecoveryCodesSheet } from "@/components/security/recovery-codes";
+import { CodeUsedNotice, codeAlreadyUsed } from "@/components/security/code-used";
 import { markSteppedUp } from "@/components/security/step-up";
 
 const isDev = process.env.NODE_ENV !== "production";
@@ -37,6 +38,7 @@ export function SignIn({ start }: { start?: { challenge: MfaChallenge; email: st
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [used, setUsed] = useState<{ n: number; s: number } | null>(null);
   const [busy, setBusy] = useState(false);
 
   // Already signed in? Go straight in.
@@ -103,6 +105,7 @@ export function SignIn({ start }: { start?: { challenge: MfaChallenge; email: st
     if (step.kind === "verify" && step.recovery ? v.length < 8 : v.length !== 6) return;
     setBusy(true);
     setError(null);
+    setUsed(null);
     try {
       if (step.kind === "enrol") {
         const res = await authApi.enrolVerify(step.mfaToken, v);
@@ -114,7 +117,9 @@ export function SignIn({ start }: { start?: { challenge: MfaChallenge; email: st
         await enter();
       }
     } catch (err) {
-      setError(signInError(err));
+      const wait = codeAlreadyUsed(err);
+      if (wait !== null) setUsed((u) => ({ n: (u?.n ?? 0) + 1, s: wait }));
+      else setError(signInError(err));
       setCode("");
       if (isApiError(err) && err.code === "MFA_TOKEN_INVALID") setStep({ kind: "password" });
     } finally {
@@ -177,6 +182,7 @@ export function SignIn({ start }: { start?: { challenge: MfaChallenge; email: st
             )}
             {!step.recovery && <WindowClock />}
             <ErrorLine error={error} className="mt-4" />
+            {used && <CodeUsedNotice key={used.n} secondsLeft={used.s} className="mt-4" />}
             <Button type="submit" size="lg" loading={busy} className="mt-6 w-full" disabled={step.recovery ? code.trim().length < 8 : code.length !== 6}>
               Verify and enter
             </Button>
@@ -190,7 +196,7 @@ export function SignIn({ start }: { start?: { challenge: MfaChallenge; email: st
         </>
       )}
 
-      {step.kind === "enrol" && <Enrol step={step} code={code} setCode={setCode} busy={busy} error={error} submit={submitCode} email={email} />}
+      {step.kind === "enrol" && <Enrol step={step} code={code} setCode={setCode} busy={busy} error={error} submit={submitCode} email={email} used={used} />}
 
       {step.kind === "codes" && (
         <>
@@ -237,6 +243,7 @@ function Enrol({
   error,
   submit,
   email,
+  used,
 }: {
   step: Extract<Step, { kind: "enrol" }>;
   code: string;
@@ -245,6 +252,7 @@ function Enrol({
   error: string | null;
   submit: (v?: string) => Promise<void>;
   email: string;
+  used: { n: number; s: number } | null;
 }) {
   const [copied, setCopied] = useState(false);
   const meta = parseOtpauth(step.otpauthUri);
@@ -299,6 +307,7 @@ function Enrol({
         <p className="mb-3 text-[13px] font-medium text-ink">Enter the code the app shows</p>
         <OtpInput value={code} onChange={setCode} onComplete={(v) => void submit(v)} invalid={!!error} disabled={busy} />
         <ErrorLine error={error} className="mt-4" />
+        {used && <CodeUsedNotice key={used.n} secondsLeft={used.s} className="mt-4" />}
         <Button type="submit" size="lg" loading={busy} disabled={code.length !== 6} className="mt-6 w-full">
           Turn on two-factor
         </Button>

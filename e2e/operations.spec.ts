@@ -54,6 +54,10 @@ test("replies to a support request", async ({ page, request }) => {
 });
 
 test("starts a read-only impersonation session behind step-up", async ({ page }) => {
+  // one running session per console user: end any left over from earlier runs
+  const mine = await (await page.request.get("/api/platform/impersonations?active=true&pageSize=50")).json();
+  const me = await (await page.request.get("/api/platform/auth/me")).json();
+  for (const s of mine.items ?? []) if (s.platformUser.id === me.id) await page.request.post(`/api/platform/impersonations/${s.id}/end`, { headers: { "x-console-request": "1" } });
   await expireStepUp(page);
   await page.goto("/impersonation?new=1");
   await page.getByRole("textbox", { name: "Hotel" }).fill("Palmwine");

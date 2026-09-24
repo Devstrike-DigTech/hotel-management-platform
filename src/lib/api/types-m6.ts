@@ -180,6 +180,7 @@ export type DbStatus = "PROVISIONING" | "MIGRATING" | "COPYING" | "CUTOVER" | "A
 export type ProvisioningStep = "CREATE_DATABASE" | "MIGRATE" | "COPY" | "READ_ONLY_DELTA" | "VERIFY" | "CUTOVER" | "DONE" | "ROLLBACK";
 export interface Provisioning {
   id: string;
+  kind?: "PROVISION" | "ROLLBACK";
   tenant: TenantRef;
   status: DbStatus | "ROLLED_BACK";
   step: ProvisioningStep;

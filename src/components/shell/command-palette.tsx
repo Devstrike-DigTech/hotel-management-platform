@@ -69,7 +69,16 @@ export function CommandPalette() {
         <D.Content className="fixed left-1/2 top-[12vh] z-[61] w-[calc(100vw-24px)] max-w-[600px] -translate-x-1/2 overflow-hidden rounded-lg border border-line bg-surface shadow-float outline-none data-[state=open]:animate-[rise_180ms_cubic-bezier(0.22,1,0.36,1)]">
           <D.Title className="sr-only">Command palette</D.Title>
           <D.Description className="sr-only">Search hotels, pages and actions</D.Description>
-          <Command label="Console command palette" shouldFilter loop>
+          <Command
+            label="Console command palette"
+            loop
+            filter={(value, search) => {
+              // every word typed must appear in the item: precise, not fuzzy
+              const v = value.toLowerCase();
+              const words = search.toLowerCase().split(/\s+/).filter(Boolean);
+              return words.every((w) => v.includes(w)) ? (v.startsWith(words[0] ?? "") ? 1 : 0.8) : 0;
+            }}
+          >
             <div className="flex items-center gap-3 border-b border-line px-4">
               <span className="font-mono text-[11px] text-brass-text">&gt;</span>
               <Command.Input

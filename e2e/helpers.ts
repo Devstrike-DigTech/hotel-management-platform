@@ -105,7 +105,13 @@ export async function expireStepUp(page: Page) {
 export async function completeStepUp(page: Page) {
   const dialog = page.getByTestId("step-up-dialog");
   await expect(dialog).toBeVisible();
-  await typeCode(page, await freshCode(), "stepup");
+  // another client (or test) may have used this window's code: then wait for the next one
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await typeCode(page, await freshCode(), "stepup");
+    const done = await dialog.waitFor({ state: "hidden", timeout: 6_000 }).then(() => true, () => false);
+    if (done) return;
+    await expect(page.getByTestId("code-used")).toBeVisible();
+  }
   await expect(dialog).toBeHidden();
 }
 

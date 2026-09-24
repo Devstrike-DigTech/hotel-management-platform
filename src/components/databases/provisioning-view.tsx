@@ -156,7 +156,8 @@ function Live({ p, db, tenantId, onDone }: { p: Provisioning; db: TenantDatabase
   const currentIdx = p.step === "DONE" ? STEPS.length : p.step === "ROLLBACK" ? -1 : STEPS.findIndex((s) => s.key === p.step);
   const elapsed = (p.finishedAt ? new Date(p.finishedAt).getTime() : now) - new Date(p.startedAt).getTime();
   const inWindow = p.readOnlyWindow && !p.readOnlyWindow.endedAt;
-  const failed = p.status === "FAILED" || p.status === "ROLLED_BACK";
+  const rollback = p.kind === "ROLLBACK";
+  const failed = p.status === "FAILED" || (p.status === "ROLLED_BACK" && !rollback);
   useEffect(() => {
     if (finished) onDone();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -167,7 +168,10 @@ function Live({ p, db, tenantId, onDone }: { p: Provisioning; db: TenantDatabase
       <Panel className="overflow-hidden">
         <div className="flex flex-col gap-4 px-5 pb-5 pt-5 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="eyebrow text-[10px]">{finished ? (failed ? "Stopped" : "Complete") : "In progress"}</p>
+            <p className="eyebrow text-[10px]">
+              {p.kind === "ROLLBACK" ? "Rollback to the shared database · " : ""}
+              {finished ? (p.status === "FAILED" ? "Failed" : p.status === "ROLLED_BACK" ? "Rolled back" : "Complete") : "In progress"}
+            </p>
             <p className="mt-1 flex items-baseline gap-3">
               <span className={cn("figure text-[44px] leading-none", failed ? "text-laterite" : finished ? "text-palm" : "text-adire")}>{p.progressPct}%</span>
               <span className="font-mono text-[13px] text-ink-muted">{duration(elapsed)} elapsed</span>
@@ -182,7 +186,7 @@ function Live({ p, db, tenantId, onDone }: { p: Provisioning; db: TenantDatabase
           <div className={cn("absolute inset-y-0 left-0 transition-[width] duration-700 ease-out", failed ? "bg-laterite" : finished ? "bg-palm" : "bg-adire")} style={{ width: `${p.progressPct}%` }} />
           {!finished && <div className="absolute inset-y-0 w-1/4 animate-[sweep_1.8s_ease-in-out_infinite] bg-linear-to-r from-transparent via-white/40 to-transparent" />}
         </div>
-        <ol className="grid grid-cols-3 border-t border-line md:grid-cols-6" aria-label="Steps">
+        <ol className={cn("grid grid-cols-3 border-t border-line md:grid-cols-6", rollback && "hidden")} aria-label="Steps">
           {STEPS.map((s, i) => {
             const done = i < currentIdx || (finished && !failed);
             const cur = i === currentIdx && !finished;
@@ -248,7 +252,7 @@ function Live({ p, db, tenantId, onDone }: { p: Provisioning; db: TenantDatabase
         <LogConsole logs={p.logs} live={!finished} />
       </div>
 
-      {finished && !failed && <Active db={db} tenantId={tenantId} compact />}
+      {finished && !failed && db.mode === "DEDICATED" && <Active db={db} tenantId={tenantId} compact />}
     </div>
   );
 }

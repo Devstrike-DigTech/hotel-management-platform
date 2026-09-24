@@ -107,7 +107,7 @@ export function AreaChart({
         {line && <path d={line} fill="none" style={{ stroke: color }} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />}
         {data.map((d, i) =>
           i % every === 0 || i === data.length - 1 ? (
-            (i === data.length - 1 || data.length - 1 - i >= every * 0.6) && (
+            (i === data.length - 1 || data.length - 1 - i >= every * 0.9) && (
               <text key={d.x} x={x(i)} y={height - 7} textAnchor={i === 0 ? "start" : i === data.length - 1 ? "end" : "middle"} style={{ fontFamily: "var(--font-mono)", fontSize: 10, fill: "var(--ink-muted)" }}>
                 {formatX(d.x)}
               </text>

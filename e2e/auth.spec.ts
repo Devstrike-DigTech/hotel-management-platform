@@ -36,3 +36,22 @@ test("a sensitive action asks for a fresh code (step-up)", async ({ page }) => {
   await expect(page.getByTestId("recovery-codes")).toBeVisible();
   await expect(page.getByTestId("recovery-codes").locator("code")).toHaveCount(10);
 });
+
+test("a code that was just used asks to wait for the next one, without counting as a failure", async ({ browser }) => {
+  const code = await freshCode();
+  for (const expectOk of [true, false]) {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await page.goto("/login");
+    await page.getByLabel("Work email").fill(ADMIN.email);
+    await page.getByLabel("Password", { exact: true }).fill(ADMIN.password);
+    await page.getByRole("button", { name: "Continue" }).click();
+    await typeCode(page, code);
+    if (expectOk) await page.waitForURL((u) => !u.pathname.startsWith("/login"));
+    else {
+      await expect(page.getByTestId("code-used")).toContainText(/just been used/);
+      await expect(page.getByText(/didn't match/)).toHaveCount(0);
+    }
+    await ctx.close();
+  }
+});
