@@ -57,7 +57,7 @@ export const FALLBACK_FEATURES: FeatureInfo[] = [
 export const featureName = (code: string, list?: FeatureInfo[]) =>
   list?.find((f) => f.code === code)?.name ?? FALLBACK_FEATURES.find((f) => f.code === code)?.name ?? code.replace(/_/g, " ");
 
-export const LIMIT_LABEL: Record<string, string> = { max_rooms: "Rooms", max_staff: "Staff seats", max_properties: "Properties" };
+export const LIMIT_LABEL: Record<string, string> = { max_rooms: "Rooms", max_staff: "Staff seats", max_properties: "Properties", max_custom_form_fields: "Extra booking-form fields" };
 
 /* ---------------- Platform roles and permissions ---------------- */
 export const PLATFORM_ROLES: Record<PlatformRole, { label: string; description: string }> = {

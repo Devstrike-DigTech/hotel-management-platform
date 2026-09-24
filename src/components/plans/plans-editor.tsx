@@ -17,7 +17,7 @@ import { AffixInput, Checkbox, Field, Input, Switch } from "@/components/ui/form
 import { ErrorState, PageHeader, Panel, Skeleton } from "@/components/ui/primitives";
 
 const CATS = ["Operations", "Revenue", "Guests", "Growth", "Platform"];
-const LIMITS = ["max_rooms", "max_staff", "max_properties"] as const;
+const LIMITS = ["max_rooms", "max_staff", "max_properties", "max_custom_form_fields"] as const;
 
 export function PlansEditor() {
   return (
