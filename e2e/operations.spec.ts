@@ -32,10 +32,21 @@ test("posts an announcement to Pro and Enterprise hotels", async ({ page }) => {
   await expect(page.getByTestId("announcement-card").filter({ hasText: title })).toContainText("Live");
 });
 
-test("replies to a support request", async ({ page }) => {
-  await page.goto("/support");
-  const row = page.getByTestId("support-row").first();
-  await row.click();
+test("replies to a support request", async ({ page, request }) => {
+  // a hotel opens a request from the admin (through the hotel API), then support answers it here
+  const api = process.env.E2E_API_URL || "http://localhost:4000";
+  const login = await request.post(`${api}/api/v1/auth/login`, { data: { email: "demo@palmwine.ng", password: "Demo1234!" } });
+  const { accessToken } = await login.json();
+  const subject = unique("Folio shows the balance twice");
+  const opened = await request.post(`${api}/api/v1/support/requests`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    data: { subject, category: "PAYMENTS", priority: "HIGH", message: "After a split cash and POS payment the folio shows the balance twice. Room 204.", context: { pageUrl: "http://localhost:3001/folios", appVersion: "0.6.0" } },
+  });
+  expect(opened.ok()).toBeTruthy();
+  const { id } = await opened.json();
+
+  await page.goto(`/support?open=${id}`);
+  await expect(page.getByRole("heading", { name: subject })).toBeVisible();
   const text = `Thanks, we are on it. Reference ${Date.now().toString(36)}.`;
   await page.getByTestId("support-composer").fill(text);
   await page.getByTestId("support-send").click();
@@ -63,6 +74,7 @@ test("starts a read-only impersonation session behind step-up", async ({ page })
 test("retries a failed job after a step-up", async ({ page }) => {
   await expireStepUp(page);
   await page.goto("/system");
+  await expect(page.locator('[data-testid^="queue-"]').first()).toBeVisible();
   const row = page.locator('[data-testid^="queue-"]').filter({ has: page.getByRole("button", { name: "Failed jobs", disabled: false }) }).first();
   test.skip((await row.count()) === 0, "no failed jobs in the seed right now");
   await row.getByRole("button", { name: "Failed jobs" }).click();

@@ -1,6 +1,8 @@
 import { execFileSync } from "node:child_process";
 import crypto from "node:crypto";
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { expect, type Page } from "@playwright/test";
 
 export const ADMIN = {
@@ -40,7 +42,7 @@ export function totp(secret: string, at = Date.now()) {
  * used (on disk, shared by every worker and project) and wait for the next
  * 30-second window when needed.
  */
-const USED = "test-results/.used-totp-windows";
+const USED = path.join(os.tmpdir(), "console-e2e-used-totp-windows");
 function usedWindows(): Set<string> {
   try {
     return new Set(fs.readFileSync(USED, "utf8").split("\n").filter(Boolean));
@@ -53,7 +55,6 @@ export async function freshCode(secret = ADMIN.secret) {
     const win = `${secret}:${Math.floor(Date.now() / 30_000)}`;
     // stay clear of the window edge so the code is still valid when it lands
     if (!usedWindows().has(win) && Date.now() % 30_000 < 26_000) {
-      fs.mkdirSync("test-results", { recursive: true });
       fs.appendFileSync(USED, `${win}\n`);
       return totp(secret);
     }
@@ -72,7 +73,12 @@ export async function signIn(page: Page, next = "/") {
   await page.getByLabel("Password", { exact: true }).fill(ADMIN.password);
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page.getByRole("heading", { name: /your code/i })).toBeVisible();
-  await typeCode(page, await freshCode());
+  // the API accepts each window once; if another client used this one, try the next
+  for (let attempt = 0; attempt < 2; attempt++) {
+    await typeCode(page, await freshCode());
+    const ok = await page.waitForURL((u) => !u.pathname.startsWith("/login"), { timeout: 8_000 }).then(() => true, () => false);
+    if (ok) return;
+  }
   await page.waitForURL((u) => !u.pathname.startsWith("/login"));
 }
 
