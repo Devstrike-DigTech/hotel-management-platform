@@ -6,6 +6,7 @@ import type { PlatformMetrics } from "@/lib/api/types";
 import { useHealth, useSupportSummary } from "@/lib/api/hooks";
 import type { NavItem } from "@/lib/nav";
 import { useCan } from "@/lib/session";
+import { useConciergeReviews } from "@/lib/api/concierge";
 
 export type BadgeKey = NonNullable<NavItem["badge"]>;
 
@@ -14,6 +15,7 @@ export function useBadgeCounts(): Partial<Record<BadgeKey, number>> {
   const can = useCan();
   const support = useSupportSummary(can("support.handle"));
   const health = useHealth(can("system.view"));
+  const concierge = useConciergeReviews({ status: "PENDING_REVIEW", pageSize: 1 }, can("concierge.review"));
   const metrics = useQuery({
     queryKey: ["platform", "metrics"],
     queryFn: () => api<PlatformMetrics>("platform/metrics"),
@@ -25,5 +27,6 @@ export function useBadgeCounts(): Partial<Record<BadgeKey, number>> {
     failedJobs: health.data?.summary.failedJobs,
     flagged: can("reviews.moderate") ? metrics.data?.marketplace?.flaggedReviews : undefined,
     orphaned: can("billing.view") ? metrics.data?.marketplace?.orphanedOpen : undefined,
+    concierge: concierge.data?.counts.pending,
   };
 }

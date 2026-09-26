@@ -25,6 +25,7 @@ const PREFIXES = [
   ["impersonation.", "Impersonation"],
   ["announcement.", "Announcements"],
   ["support.", "Support"],
+  ["concierge.", "Concierge review"],
   ["coupon.", "Coupons"],
   ["plan.", "Plans"],
   ["commission.", "Commission"],

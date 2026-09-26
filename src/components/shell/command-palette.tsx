@@ -5,7 +5,7 @@ import * as D from "@radix-ui/react-dialog";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Buildings, Megaphone, Plus, UserSwitch } from "@phosphor-icons/react";
+import { CallBell, ArrowRight, Buildings, Megaphone, Plus, UserSwitch } from "@phosphor-icons/react";
 import { api } from "@/lib/api/client";
 import type { Paginated, TenantRow } from "@/lib/api/types";
 import { ACCOUNT_ITEM, NAV } from "@/lib/nav";
@@ -60,6 +60,7 @@ export function CommandPalette() {
     { label: "New enterprise tenant", href: "/tenants/new", icon: Plus, perm: "tenants.manage" as const },
     { label: "Write an announcement", href: "/announcements/new", icon: Megaphone, perm: "announcements.manage" as const },
     { label: "Start an impersonation session", href: "/impersonation?new=1", icon: UserSwitch, perm: "impersonate" as const },
+    { label: "Review held concierge services", href: "/concierge", icon: CallBell, perm: "concierge.review" as const },
   ].filter((a) => can(a.perm));
 
   return (

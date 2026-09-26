@@ -10,6 +10,7 @@ export type PlatformPermission =
   | "billing.manage"
   | "commission.manage"
   | "reviews.moderate"
+  | "concierge.review"
   | "impersonate"
   | "announcements.manage"
   | "support.handle"

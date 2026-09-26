@@ -16,6 +16,7 @@ import {
   UserSwitch,
   WarningDiamond,
   Plugs,
+  CallBell,
   type Icon,
 } from "@phosphor-icons/react";
 import type { Permission } from "./catalog";
@@ -26,7 +27,7 @@ export interface NavItem {
   icon: Icon;
   perm?: Permission | Permission[];
   /** key into the shell's badge counts */
-  badge?: "support" | "flagged" | "orphaned" | "failedJobs";
+  badge?: "support" | "flagged" | "orphaned" | "failedJobs" | "concierge";
   keywords?: string;
 }
 export interface NavGroup {
@@ -56,7 +57,10 @@ export const NAV: NavGroup[] = [
   },
   {
     label: "Trust",
-    items: [{ href: "/reviews", label: "Reviews", icon: Star, perm: "reviews.moderate", badge: "flagged", keywords: "moderation flagged hide" }],
+    items: [
+      { href: "/reviews", label: "Reviews", icon: Star, perm: "reviews.moderate", badge: "flagged", keywords: "moderation flagged hide" },
+      { href: "/concierge", label: "Concierge review", icon: CallBell, perm: "concierge.review", badge: "concierge", keywords: "concierge services acceptable use policy denylist flagged approve reject suspend hotel" },
+    ],
   },
   {
     label: "Infrastructure",
