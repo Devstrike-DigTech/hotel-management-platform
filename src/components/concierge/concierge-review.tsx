@@ -81,7 +81,7 @@ function Review() {
     { value: "REJECTED", label: "Rejected", n: counts?.rejected, blurb: "Not approved. The hotel sees the reason; an edit sends it back here." },
     { value: "HIDDEN", label: "Hidden", n: counts?.hidden, blurb: "Taken down after going live. Approve to put one back." },
     { value: "LIVE", label: "Live", blurb: "Every service guests can see now. Hide one if it breaks the policy after all." },
-    { value: "HOTELS", label: "Hotels", blurb: "Concierge per hotel: policy accepted, services by state, requests in 30 days (counts only), and suspension." },
+    { value: "HOTELS", label: "Hotels", n: suspendedQ.data?.total || undefined, blurb: "Concierge per hotel: policy accepted, services by state, requests in 30 days (counts only), and suspension." },
   ];
   const current = TABS.find((t) => t.value === tab)!;
 
@@ -106,7 +106,7 @@ function Review() {
         }
       />
 
-      <FigureRow cols={4} className="mb-6">
+      <FigureRow cols={4} className="mb-6 max-md:hidden">
         <Figure label="Waiting for review" value={counts?.pending ?? "–"} tone={counts?.pending ? "brass" : "ink"} sub="hidden from guests" />
         <Figure label="Rejected" value={counts?.rejected ?? "–"} sub="the hotel has the reason" />
         <Figure label="Hidden after going live" value={counts?.hidden ?? "–"} />
@@ -420,7 +420,35 @@ function HotelsTable() {
       ) : !list.data.items.length ? (
         <EmptyState glyph="rings" title="No hotels here" body="Hotels appear once they accept the policy or add a service." />
       ) : (
-        <div className="overflow-x-auto">
+        <>
+        <ul className="divide-y divide-line md:hidden">
+          {list.data.items.map((t) => (
+            <li key={t.tenant.id} className="flex flex-col gap-2 px-5 py-4" data-tenant-card={t.tenant.name}>
+              <div className="flex items-center gap-2">
+                <Link href={`/tenants/${t.tenant.id}`} className="min-w-0 flex-1 truncate font-medium text-ink">
+                  {t.tenant.name}
+                </Link>
+                {t.suspended ? <Badge tone="danger">Suspended</Badge> : t.enabledProperties ? <Badge tone="palm" dot>On</Badge> : <Badge>Off</Badge>}
+              </div>
+              <p className="font-mono text-[12px] text-ink-muted">
+                {t.services.live} live{t.services.pending ? ` · ${t.services.pending} waiting` : ""} · {t.requests30d} requests, 30 d
+              </p>
+              {t.suspended && <p className="text-[12px] text-ink-muted">&ldquo;{t.suspended.reason}&rdquo;</p>}
+              <div>
+                {t.suspended ? (
+                  <Button size="sm" variant="secondary" onClick={() => setReinstating(t)}>
+                    <ArrowCounterClockwise size={14} /> Reinstate
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="ghost" className="text-laterite hover:bg-laterite-wash" onClick={() => setSuspending(t)}>
+                    <Pause size={14} /> Suspend concierge
+                  </Button>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+        <div className="overflow-x-auto max-md:hidden">
           <table className="w-full min-w-[860px] text-[13px]" data-testid="concierge-hotels">
             <thead>
               <tr className="border-b border-line text-left text-[11px] uppercase tracking-[0.1em] text-ink-muted">
@@ -487,6 +515,7 @@ function HotelsTable() {
             </tbody>
           </table>
         </div>
+        </>
       )}
       {list.data && <Pager page={page} pageSize={20} total={list.data.total} onPage={setPage} noun="hotels" />}
       {suspending && <SuspendDialog open onOpenChange={(o) => !o && setSuspending(null)} tenant={suspending.tenant} />}
