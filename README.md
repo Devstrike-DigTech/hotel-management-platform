@@ -225,3 +225,30 @@ src/components          by section; ui/ for the kit, security/ for OTP, QR, reco
 src/lib/api             client (step-up broker), endpoints, hooks, types (M6 contract)
 e2e                     Playwright
 ```
+
+## Docker and deploy
+
+**Whole stack.** The backend repo runs the console with the API, worker, database and the other two apps:
+`docker compose -f docker-compose.full.yml up --build` in `hotel-management-backend` (see its README, "Run everything
+with Docker"). This repo must sit next to it as `../hotel-management-platform`. Open the console at
+`http://localhost:3002` (not `127.0.0.1`); sign in with `admin@devstrike.ng` / `Admin1234!` and a TOTP code.
+
+**This image alone.** `Dockerfile` builds the Next.js standalone output on `node:22-alpine` and runs `node server.js`
+as the `node` user on port 3002 (`PORT` overrides). `NEXT_PUBLIC_*` are build arguments; `API_INTERNAL_URL`,
+`TRUSTED_PROXY_SECRET` and `PLATFORM_PROXY_KEY` are read at run time.
+
+```bash
+docker build -t hotel-platform --build-arg NEXT_PUBLIC_API_URL=https://api.example.com .
+docker run -p 3002:3002 -e API_INTERNAL_URL=http://api:4000 -e TRUSTED_PROXY_SECRET=... hotel-platform
+```
+
+The gateway's CSRF check compares the browser's `Origin` with the origin Next derives from the server, which in a
+container is `http://localhost:<PORT>` (the Dockerfile makes the standalone server bind without a hostname, as
+`next start` does). So publish the same port the container listens on and browse to `localhost`. Self-hosting the
+image behind a real domain (a reverse proxy) needs the check to use the forwarded host first (open item in the
+backend's `docs/deploy.md`); on Vercel the derived origin is the real one. Sessions use `__Host-` cookies, so
+anything but `localhost` needs HTTPS. Behind a TLS-inspecting proxy, pass its CA as the optional build secret
+`extra_ca`.
+
+**Vercel.** `vercel.json` pins pnpm and the function region (`lhr1`, next to the API). Turn on Deployment Protection
+for this project. Variables: `docs/deploy.md` in the backend repo.
