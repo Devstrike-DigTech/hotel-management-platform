@@ -23,6 +23,8 @@ const csp = [
 const nextConfig: NextConfig = {
   devIndicators: false,
   poweredByHeader: false,
+  // Self-contained server for the Docker image (.next/standalone); Vercel ignores it.
+  output: "standalone",
   agentRules: false,
   async headers() {
     return [
