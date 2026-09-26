@@ -32,6 +32,8 @@ export default defineConfig({
     // signs in once (password + TOTP) and keeps the cookies for the console tests
     { name: "setup", testMatch: /session\.setup\.ts/, use: { ...browser } },
     { name: "auth", testMatch: /auth\.spec\.ts/, use: { ...browser } },
-    { name: "console", testIgnore: /auth\.spec\.ts|session\.setup\.ts/, dependencies: ["setup"], use: { ...browser, storageState: STATE } },
+    // the gateway's CSRF origin rules: pure checks and plain requests, no sign-in needed
+    { name: "gateway", testMatch: /origin\.spec\.ts/, use: { ...browser } },
+    { name: "console", testIgnore: /auth\.spec\.ts|session\.setup\.ts|origin\.spec\.ts/, dependencies: ["setup"], use: { ...browser, storageState: STATE } },
   ],
 });

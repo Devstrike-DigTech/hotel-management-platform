@@ -65,6 +65,7 @@ current code. Production builds never show it.
 | `API_INTERNAL_URL` | *Server only.* Private address the console server uses to reach the API; defaults to `NEXT_PUBLIC_API_URL` | `http://api.internal:4000` |
 | `TRUSTED_PROXY_SECRET` | *Server only.* Same value as the API's; lets it trust the client IP this server forwards | 16+ characters |
 | `PLATFORM_PROXY_KEY` | *Server only, optional.* Sent as `X-Platform-Proxy-Key` so the API can accept platform calls only from this server | random |
+| `PLATFORM_PUBLIC_ORIGIN` | *Server only, recommended in production.* The console's public origin(s), comma-separated; a write's `Origin` must be one of them. Unset: the host the request came through (`X-Forwarded-Host` or `Host`, with `X-Forwarded-Proto`) | `https://console.hotelos.ng` |
 | `NEXT_PUBLIC_DEV_*` | Development sign-in helpers, ignored by production builds | |
 
 ## Security model
@@ -80,8 +81,11 @@ The console can change what every hotel on the platform may do, so it is built a
   refresh token ends the session (the API revokes the whole family).
 - **Only platform routes pass.** The handler forwards `platform/*` and a few public reads, refuses dot segments, and
   in production never forwards the API's development helpers (`.../dev/...`).
-- **CSRF is closed twice**: writes need an `X-Console-Request` header, which a cross-site form cannot send, and a
-  same-origin `Origin`; the cookies are `SameSite=Strict` besides.
+- **CSRF is closed twice**: writes need an `X-Console-Request` header, which a cross-site form cannot send, and an
+  `Origin` that is the console's public origin (`PLATFORM_PUBLIC_ORIGIN`, or else the host the request came through:
+  `X-Forwarded-Host` / `Host` with `X-Forwarded-Proto`), never the address the Node server listens on, so it works
+  behind a proxy or in a container (`src/lib/server/origin.ts`, tested in `e2e/origin.spec.ts`); the cookies are
+  `SameSite=Strict` besides.
 - **The real client IP** travels as `X-Client-IP`, vouched for by `X-Proxy-Auth = TRUSTED_PROXY_SECRET`. Per-user IP
   allowlists, lockouts and rate limits depend on it. The handler takes the *last* `X-Forwarded-For` hop (the one your
   own edge added), never the first.

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { COOKIE, clearCookie, cookieHeader, jwtTtl, readCookie, ttlFromIso } from "@/lib/server/session-cookies";
+import { consoleOriginOptions, isSameOrigin } from "@/lib/server/origin";
 
 /**
  * The console's API gateway.
@@ -17,7 +18,9 @@ import { COOKIE, clearCookie, cookieHeader, jwtTtl, readCookie, ttlFromIso } fro
  *     forwarded, and the real visitor IP travels as `X-Client-IP` signed with
  *     `TRUSTED_PROXY_SECRET` (per-user IP allowlists and lockouts depend on it).
  *  3. CSRF is closed: writes need the `X-Console-Request` header (a cross-site
- *     form cannot set it) and a same-origin `Origin`.
+ *     form cannot set it) and an `Origin` that is the console's public origin
+ *     (`PLATFORM_PUBLIC_ORIGIN`, or the host the request came through), never
+ *     the address the server listens on (see `src/lib/server/origin.ts`).
  */
 
 export const dynamic = "force-dynamic";
@@ -122,8 +125,7 @@ async function handle(req: NextRequest, ctx: Ctx) {
   const method = req.method.toUpperCase();
   if (method !== "GET" && method !== "HEAD") {
     if (req.headers.get("x-console-request") !== "1") return json(403, "CSRF", "Missing console request header");
-    const origin = req.headers.get("origin");
-    if (origin && origin !== req.nextUrl.origin) return json(403, "CSRF", "Cross-site request refused");
+    if (!isSameOrigin(req.headers, consoleOriginOptions(req.nextUrl.origin))) return json(403, "CSRF", "Cross-site request refused");
   }
 
   const cookieHeaderIn = req.headers.get("cookie");
