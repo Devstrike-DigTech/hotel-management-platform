@@ -10,6 +10,12 @@ it is read from `NEXT_PUBLIC_APP_NAME` everywhere and never hard-coded.
 
 ![Overview](docs/screenshots/overview-1440-light.png)
 
+**Milestone 8** adds the concierge review queue and per-hotel concierge suspension:
+
+| | |
+|---|---|
+| ![Concierge review: the caught word marked, and why it was held](docs/screenshots/m8-concierge-review-1440-light.png) | ![Hotels: services by state, counts only, suspension](docs/screenshots/m8-concierge-hotels-1440-dark.png) |
+
 | | |
 |---|---|
 | ![Support desk](docs/screenshots/support-1440-light.png) | ![Dedicated database provisioning, live](docs/screenshots/database-provisioning-1440-dark.png) |
@@ -124,6 +130,7 @@ and the API enforces them regardless:
 | Announcements | yes | yes | | | |
 | Support desk | yes | yes | yes | | |
 | Reviews moderation | yes | yes | yes | | |
+| Concierge review and suspension | yes | yes | yes | | |
 | System health | yes | yes | yes | | |
 | Dedicated databases | yes | yes | | | |
 | Console users | yes | | | | |
@@ -168,6 +175,7 @@ The console is meant to live on its own host, for example `console.hotelos.ng`, 
 | `/marketplace` | GMV, commission collected and receivable, bookings by channel and payment, commission by hotel, pay-at-hotel receivables by month with *Settle* |
 | `/payments/orphaned` | Guest money that could not be applied, with the reason and a refund retry |
 | `/reviews` | Moderation queue: flagged, live, hidden; hide with a reason and note, keep, restore |
+| `/concierge` | **Concierge review** (M8): hotel concierge services the content screen held, oldest first, hidden from guests until decided. Each case shows the hotel, the service as guests would read it (name, description, options, question labels) with the **caught words marked**, and *Why it was held* (rule, term and excerpt). Approve (with a note), reject with a reason the hotel sees, hide a live service, put a hidden one back. **Hotels**: policy accepted, services by state, requests and held requests in 30 days (counts only: the console never sees what guests asked for), and **suspend / reinstate** a hotel's concierge with a reason (the API asks for step-up). Every decision is in the audit log (*Concierge review* filter) and mirrored in the hotel's own trail |
 | `/system` | **System health**: status, BullMQ queues with failed jobs (inspect, retry or clear, selected or all, behind step-up), scheduled jobs with last run, duration and *Run now*, email/SMS/WhatsApp deliveries by provider and recent failures, outbound webhook failures, channel sync errors, the Paystack webhook log, database size per tenant (measured for dedicated, estimated for shared) |
 | `/databases`, `/databases/[tenantId]` | Dedicated database registry and candidates; **provisioning, live**: percentage and elapsed time, the six steps, the read-only window as it happens, every table's copy progress and checksum, and a streaming log; afterwards rollback (until the shared copy is purged) and purge now; *Migrate every database* for super admins |
 | `/api-usage` | Partner API requests, writes, errors and 429s; by day and by tenant |
@@ -211,7 +219,12 @@ Runs against the dev server on :3002 and the live API on :4000 with the M6 seed:
 - reply to a support request;
 - start a read-only impersonation session behind step-up, check the one-time handoff link, end it;
 - retry a failed job behind step-up;
-- provision a dedicated database for a new Enterprise tenant and wait for it to go active.
+- provision a dedicated database for a new Enterprise tenant and wait for it to go active;
+- concierge review (`e2e/concierge.spec.ts`): two services whose wording trips the screen show in the queue with the word
+  marked; one is approved (live for guests), the other rejected with a reason the hotel then sees; a hotel's concierge is
+  suspended behind step-up and reinstated;
+- the gateway's CSRF origin rules (`e2e/origin.spec.ts`, project `gateway`): the public host behind a proxy is accepted,
+  other sites are refused, `PLATFORM_PUBLIC_ORIGIN` wins when set.
 
 A setup project signs in once and shares the cookies. The API refuses a code twice, so the helpers wait for the next
 30-second window when a code has been used. To exercise step-up, the tests age the session's step-up in the
